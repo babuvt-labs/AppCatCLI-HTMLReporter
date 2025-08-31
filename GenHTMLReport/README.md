@@ -5,7 +5,6 @@ This PowerShell script generates an attractive HTML report from Azure App Modern
 ## Features
 
 - **Summary Dashboard**: Displays key metrics including projects analyzed, issues found, incidents, and effort estimation
-- **Interactive Charts**: Visual representation of issues by severity and category using Chart.js
 - **Detailed Issue Analysis**: Expandable sections showing:
   - Issue descriptions from the rules database
   - Severity levels (Mandatory, Optional, Potential, Information)
@@ -13,7 +12,7 @@ This PowerShell script generates an attractive HTML report from Azure App Modern
   - **Collapsible affected file locations** - Click to expand/collapse the list of affected files
   - **Microsoft documentation links** - Direct links to relevant Microsoft Learn articles and documentation
 - **Modern UI**: Responsive design with hover effects and smooth animations
-- **Export Ready**: Self-contained HTML file with embedded CSS and JavaScript
+- **Export Ready**: Self-contained HTML file with embedded CSS (no external JS or chart dependencies)
 
 ## Usage
 
@@ -37,7 +36,6 @@ This will look for `results.json` in the current directory and generate `AppCat_
 
 - PowerShell 5.1 or later
 - Valid AppCat results.json file
-- Internet connection (for CDN resources: Chart.js and Font Awesome)
 
 ## Output
 
@@ -46,9 +44,8 @@ The generated HTML report includes:
 1. **Header Section**: Title and subtitle
 2. **Analysis Information**: Start/end times, project path, privacy mode
 3. **Summary Cards**: Key metrics in a grid layout
-4. **Charts Section**: Pie charts for severity and category distribution
-5. **Issues Section**: Detailed breakdown of all issues grouped by severity
-6. **Footer**: Generation timestamp
+4. **Issues Section**: Detailed breakdown of all issues grouped by severity
+5. **Footer**: Generation timestamp
 
 ## Issue Categorization
 
@@ -71,12 +68,10 @@ The script will automatically open the generated report in your default browser 
 
 - Ensure the JSON file is valid and follows AppCat format
 - Check that you have write permissions to the output directory
-- Verify internet connectivity for external resources (Chart.js, Font Awesome)
 
 ## File Structure Expected
 
 The script expects the following JSON structure:
 - `stats.summary`: Project metrics
-- `stats.charts`: Severity and category data
 - `projects[].ruleInstances`: Individual rule violations
 - `rules`: Rule definitions and descriptions

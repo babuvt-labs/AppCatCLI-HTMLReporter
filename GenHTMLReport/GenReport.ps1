@@ -9,59 +9,6 @@ param(
     [string]$OutputPath = "AppCat_Report.html"
 )
 
-# Function to generate Chart.js pie chart HTML
-function Generate-ChartJS {
-    param(
-        [string]$ChartId,
-        [string]$ChartTitle,
-        [hashtable]$Data,
-        [string[]]$Colors
-    )
-    
-    $labels = ($Data.Keys | ForEach-Object { "'$_'" }) -join ","
-    $values = ($Data.Values) -join ","
-    $colorString = ($Colors | ForEach-Object { "'$_'" }) -join ","
-    
-    return @"
-    <div class="chart-container">
-        <h3>$ChartTitle</h3>
-        <canvas id="$ChartId"></canvas>
-    </div>
-    <script>
-        var ctx$ChartId = document.getElementById('$ChartId').getContext('2d');
-        var chart$ChartId = new Chart(ctx$ChartId, {
-            type: 'pie',
-            data: {
-                labels: [$labels],
-                datasets: [{
-                    data: [$values],
-                    backgroundColor: [$colorString],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                var percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    </script>
-"@
-}
 
 # Function to generate issue details HTML
 function Generate-IssueDetails {
@@ -106,14 +53,21 @@ function Generate-IssueDetails {
         "Potential" = "#ffc107"
         "Information" = "#17a2b8"
     }
+    $severityIcons = @{
+        "Mandatory" = "❗"
+        "Optional" = "⚠️"
+        "Potential" = "🔶"
+        "Information" = "💡"
+    }
     
     foreach ($severity in $severityOrder) {
         if ($issueGroups.ContainsKey($severity)) {
             $color = $severityColors[$severity]
+            $icon = $severityIcons[$severity]
             $html += @"
             <div class="severity-section">
                 <h3 style="color: $color; border-bottom: 2px solid $color; padding-bottom: 10px;">
-                    <i class="fas fa-exclamation-triangle"></i> $severity Issues
+                    $icon $severity Issues
                 </h3>
 "@
             
@@ -147,7 +101,7 @@ function Generate-IssueDetails {
                     foreach ($link in $rule.links) {
                         if ($link.url) {
                             $html += "<a href='$($link.url)' target='_blank' class='info-link'>"
-                            $html += "<i class='fas fa-external-link-alt'></i> Microsoft Documentation"
+                            $html += "🔗 Microsoft Documentation"
                             $html += "</a>"
                         }
                     }
@@ -235,24 +189,9 @@ try {
         }
     }
     
-    # Convert charts data to hashtables
-    $severityChart = @{}
-    $data.stats.charts.severity.PSObject.Properties | ForEach-Object { $severityChart[$_.Name] = $_.Value }
-    
-    $categoryChart = @{}
-    $data.stats.charts.category.PSObject.Properties | ForEach-Object { $categoryChart[$_.Name] = $_.Value }
-    
     # Convert rules to hashtable for easier lookup
     $rulesHash = @{}
     $data.rules.PSObject.Properties | ForEach-Object { $rulesHash[$_.Name] = $_.Value }
-    
-    # Define colors for charts
-    $severityColors = @("#dc3545", "#fd7e14", "#ffc107", "#17a2b8")
-    $categoryColors = @("#007bff", "#28a745", "#ffc107", "#dc3545", "#6f42c1", "#fd7e14", "#20c997", "#6c757d", "#e83e8c", "#17a2b8")
-    
-    # Generate chart HTML
-    $severityChartHtml = Generate-ChartJS -ChartId "severityChart" -ChartTitle "Issues by Severity" -Data $severityChart -Colors $severityColors
-    $categoryChartHtml = Generate-ChartJS -ChartId "categoryChart" -ChartTitle "Issues by Category" -Data $categoryChart -Colors $categoryColors
     
     # Generate issue details for the first project (assuming single project)
     $project = $data.projects[0]
@@ -266,8 +205,8 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure App Modernization Assessment Report</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js removed: using SVG charts instead -->
+    <!-- Font Awesome removed: using Unicode icons instead -->
     <style>
         * {
             margin: 0;
@@ -604,12 +543,12 @@ try {
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-cloud-upload-alt"></i> Azure App Modernization Assessment</h1>
+            <h1>☁️ Azure App Modernization Assessment</h1>
             <p class="subtitle">Comprehensive analysis report for cloud migration readiness</p>
         </div>
         
         <div class="analysis-info">
-            <h3><i class="fas fa-info-circle"></i> Analysis Information</h3>
+            <h3>ℹ️ Analysis Information</h3>
             <p><strong>Analysis Start:</strong> $analysisStart</p>
             <p><strong>Analysis End:</strong> $analysisEnd</p>
             <p><strong>Project Path:</strong> $($project.path)</p>
@@ -635,13 +574,10 @@ try {
             </div>
         </div>
         
-        <div class="charts-section">
-            $severityChartHtml
-            $categoryChartHtml
-        </div>
+
         
         <div class="issues-section">
-            <h2><i class="fas fa-list-alt"></i> Detailed Issues Analysis</h2>
+            <h2>📝 Detailed Issues Analysis</h2>
             $issueDetailsHtml
         </div>
         
